@@ -1,0 +1,13 @@
+name: /home/donal/coding_projects/Eniac_magist_data_analysis/env
+channels:
+  - defaults
+dependencies:
+  - jupyter
+  - pandas
+  - sqlalchemy
+  - numpy
+  - pip
+  - scipy
+  - seaborn
+  - pymysql
+prefix: /home/donal/coding_projects/Eniac_magist_data_analysis/env
