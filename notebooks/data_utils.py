@@ -69,7 +69,7 @@ missing_product_descriptions = [
 
 def add_missing_product_descriptions(df):
     # Check for products without descriptions
-    names_of_products_without_descriptions = products[products.desc.isna()].name.tolist()
+    names_of_products_without_descriptions = df[df.desc.isna()].name.tolist()
     
     for i in range(len(names_of_products_without_descriptions)):
         df.loc[df.name == names_of_products_without_descriptions[i], 'desc'] = missing_product_descriptions[i]
@@ -102,8 +102,18 @@ def import_orderlines():
 
 def import_products():
     return pd.read_csv(path + 'products.csv',
+                       dtype={'sku': str, 
+                              'name': str, 
+                              'desc': str,
+                              'price': str,
+                              'promo_price': str, 
+                              'in_stock': int,
+                              'type': str})
 
 def clean_brands():
+    print("0 missing values were removed from brands.")
+    print("This represents 0.00% of the data.")
+    print("\n")
     return import_brands()
 
 def clean_orders():
@@ -115,7 +125,8 @@ def clean_orders():
                     )
     
     print(f"{orders.shape[0]-orders_clean.shape[0]} missing values were removed from orders.")
-    print(f"This represents {(orders.shape[0]-orders_clean.shape[0])/orders.shape[0] * 100:.2f}% of the data.")
+    print(f"This represents {(orders.shape[0]-orders_clean.shape[0])/orders.shape[0] * 100:.4f}% of the data.")
+    print("\n")
 
     return orders_clean
 
@@ -131,6 +142,7 @@ def clean_orderlines():
                         )
     print(f"{orderlines.shape[0]-orderlines_clean.shape[0]} missing values were removed from orderlines.")
     print(f"This represents {(orderlines.shape[0]-orderlines_clean.shape[0])/orderlines.shape[0] * 100:.2f}% of the data.")
+    print("\n")
 
     return orderlines_clean
 
@@ -149,7 +161,8 @@ def clean_products():
                      )
                       
     print(f"{products.shape[0]-products_clean.shape[0]} missing values were removed from products")
-    print(f"This represents {(products.shape[0]-products_clean.shape[0])/products.shape[0] * 100:.2f}% of the data. \n")
+    print(f"This represents {(products.shape[0]-products_clean.shape[0])/products.shape[0] * 100:.2f}% of the data.")
+    print("\n")
     
     return products_clean
 
