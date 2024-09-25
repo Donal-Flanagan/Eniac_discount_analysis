@@ -22,27 +22,6 @@ def rename_columns(df, col_name_dict):
     return (df
             .rename(columns=col_name_dict)
            )
-    
-def transform_unit_price_to_floats(df):
-    """
-    Transform the orderlines.unit_price price column to floats.
-    Some of the values have two decimal points. 
-    For these values we will remove the leftmost decimal and transform all values to floats.
-    The correct position of the decimal point will be determined by merging orderlines, 
-    products, orders and brands, and comparing the price values.
-    
-    Args:
-        df (pd.DataFrame): The orderlines data
-    
-    Returns:
-        pd.DataFrame: The orderlines data with the unit_price column transformed from str to float values.
-    """
-    return (
-        df.assign(unit_price = df.unit_price.str.split('.')
-                  .apply(lambda x : x[0]+x[1]+'.'+x[2] if len(x)==3 else x[0]+'.'+ x[1])
-                  .astype(float)
-        )
-    )
 
 def create_short_col(df):
     """
@@ -137,7 +116,6 @@ def clean_orderlines():
                         .pipe(start_pipeline)
                         .pipe(drop_deprecated_columns, col_list=['product_id'])
                         .pipe(rename_columns, {'id_order': 'order_id'})
-                        .pipe(transform_unit_price_to_floats)
                         .pipe(create_short_col)
                         )
     print(f"{orderlines.shape[0]-orderlines_clean.shape[0]} missing values were removed from orderlines.")
