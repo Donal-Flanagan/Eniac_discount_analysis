@@ -167,5 +167,98 @@ def clean_products():
     return products_clean
 
 
+# Data merging functions
+
+col_order = [
+    'order_id',
+    'orderline_id',
+    'date',
+    'name',
+    'desc',
+    'brand',
+    'sku',
+    'category',
+    'total_paid',
+    'product_quantity',
+    'regular_price',
+    'promo_price',
+    'sale_price'
+]
+
+def reorder_columns(df, col_list):
+    return df[col_list]
+
+def rename_columns(df, col_dict):
+    return (df
+            .rename(columns=col_dict)
+           )
+    
+def assign_product_categories(df):
+    apple_regexp_dict = {
+        'iPod': '^.{0,7}apple ipod',
+        'iPhone':  'apple iphone',
+        'iPad':  'apple ipad',
+        'Mac':  'apple macbook|apple iMac|apple Mac mini|desktop computer',
+    }
+    
+    other_regexp_dict = {        
+        'Smartwatch':'withings|watch|fitbit|apple watch|smartwatch|smart watch',
+        'Accessories': 'kit|strap|armband|belt|bracelet|stylus|pen|Bamboo Wacom Intuos|pencil|pen|rubber pointers|screwdriver|case|funda|housing|casing|folder|bag|backpack|cable|connector|Lightning to USB|Wall socket|power strip|adapter|battery|headset|headphones|mouse|trackpad|stand|support|protect|cover|sleeve|Screensaver|shellhub|dock|microphone|keyboard|keypad',
+        'Hardware': 'Philips Hue|temperature sensor|display|monitor|camera|charger|speaker|router|repeater|Synology|nas|server|Parrot FPV Glasses|Command Pack 2 Skycontroller|Apple TV',
+        'Software':  'adobe|Office 365|Office Home and Student|software|parallels',
+        'Memory': 'hard disk|hard drive|flash drive|USB 2.0 key|USB 2.0 pen|SSD|pendrive|raid|SDHC|sata|memory card|Portable Hard Thunderbolt',
+        'Repairs & warranties': 'repair|parts and labor|warranty|applecare|license|protection|installation',
+    }
+    
+    df = df.assign(category = 'unknown')
+    
+    # Find main apple items
+    for label, val in apple_regexp_dict.items(): 
+        regexp = re.compile(val, flags=re.IGNORECASE)
+        df = (
+            df
+            .assign(
+                category = lambda x: np.where(
+                    ((x['desc'].str.contains(regexp, regex=True))|(x['name'].str.contains(regexp, regex=True))) &
+                    (x['category'] == 'unknown') & (x['brand'] == 'Apple'), 
+                    label, x['category'])
+            )
+        )
+    
+    # Find other items
+    for label, val in other_regexp_dict.items(): 
+        regexp = re.compile(val, flags=re.IGNORECASE)
+        df = (
+            df
+            .assign(
+                category = lambda x: np.where(
+                    ((x['desc'].str.contains(regexp, regex=True))|(x['name'].str.contains(regexp, regex=True))) &
+                    (x['category'] == 'unknown'), label, x['category'])
+            )
+        )
+    
+    return df
+
+def merge_dataframes(df, merge_df, col):
+    return df.merge(merge_df, on=col)
+
+def drop_uncompleted_orders(df):
+    return df[df.state=='Completed']
+
+def merge_data(orders_clean, orderlines_clean, products_clean, brands_clean):
+
+    completed_sales = (orders_clean
+                       .pipe(start_pipeline)
+                       .pipe(drop_uncompleted_orders)
+                       .pipe(merge_dataframes, orderlines_clean, 'order_id')
+                       .pipe(merge_dataframes, products_clean, 'sku')
+                       .pipe(merge_dataframes, brands_clean, 'short')
+                       .pipe(rename_columns, col_dict={'long': 'brand', 'unit_price': 'sale_price', 'price': 'regular_price', 'id': 'orderline_id'})
+                       .pipe(drop_deprecated_columns, col_list=['short', 'created_date', 'state'])
+                       .pipe(assign_product_categories)
+                       .pipe(reorder_columns, col_order)
+                 )
+    
+    return completed_sales
 
     
