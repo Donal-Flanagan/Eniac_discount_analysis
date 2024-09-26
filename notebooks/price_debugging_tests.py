@@ -1,9 +1,46 @@
 import pandas as pd
 
-def test_col_vals_are_greater_than_other(df, greater_col, lesser_col):
+
+def count_decimal_points(df):
+    prices = df[['orderline_id', 'total_paid', 'regular_price', 'promo_price', 'sale_price']].copy()
+
+    prices['regular_price_decimal_count'] = prices['regular_price'].str.count(r'\.')
+    prices['promo_price_decimal_count'] = prices['promo_price'].str.count(r'\.')
+    prices['sale_price_decimal_count'] = prices['sale_price'].str.count(r'\.')
+
+    return prices
+
+def generate_test_data(sales_df):
+    decimal_points_per_price = count_decimal_points(sales_df)
+    
+    # Extract a subset of the data with only one decimal point so we can transform the str values to floats and check our test logic.
+    test_data_ids = decimal_points_per_price[
+                        (decimal_points_per_price.regular_price_decimal_count == 1) & 
+                        (decimal_points_per_price.promo_price_decimal_count == 1) & 
+                        (decimal_points_per_price.sale_price_decimal_count == 1)
+                    ].orderline_id
+    test_data = sales_df[sales_df.orderline_id.isin(test_data_ids)].copy()
+
+    # Transform the price values to float.
+    test_data.regular_price = test_data.regular_price.astype(float)
+    test_data.promo_price = test_data.promo_price.astype(float)
+    test_data.sale_price = test_data.sale_price.astype(float)
+    
+    
+    # This data is corrupted and should fail the tests
+    failing_test_data = test_data
+    # This subset of the data has regular_price >= promo_price and promo_price >= sale_price and should therefore (hopefully) be uncorrupted
+    passing_test_data = test_data[
+                            (test_data.regular_price >= test_data.promo_price) & 
+                            (test_data.promo_price >= test_data.sale_price)
+                        ]
+
+    return failing_test_data, passing_test_data
+
+def test_col_vals_are_greater_or_equal_to_other(df, greater_col, lesser_col):
     num_incorrect_vals = df[df[greater_col] < df[lesser_col]].shape[0]
     if num_incorrect_vals == 0:
-        print(f"All of the {greater_col} values are greater than the corresponding {lesser_col} values.\n")
+        print(f"All of the {greater_col} values are greater or equal to the corresponding {lesser_col} values.\n")
         return pd.DataFrame()
     else:
         print(f"There are corrupted values in {greater_col} which are less than their corresponding {lesser_col} values.")
@@ -11,18 +48,16 @@ def test_col_vals_are_greater_than_other(df, greater_col, lesser_col):
         corrupted_price_orderline_ids = df[df[greater_col] < df[lesser_col]].orderline_id
         return corrupted_price_orderline_ids
 
-# test_data[test_data.regular_price < test_data.promo_price].shape[0]
-
-def test_regular_greater_than_promo(df):
-    incorrect_val_ids = test_col_vals_are_greater_than_other(df, 'regular_price', 'promo_price')
+def test_regular_greater_or_equal_to_promo(df):
+    incorrect_val_ids = test_col_vals_are_greater_or_equal_to_other(df, 'regular_price', 'promo_price')
     return incorrect_val_ids
     
-def test_regular_greater_than_sale(df):
-    incorrect_val_ids = test_col_vals_are_greater_than_other(df, 'regular_price', 'sale_price')
+def test_regular_greater_or_equal_to_sale(df):
+    incorrect_val_ids = test_col_vals_are_greater_or_equal_to_other(df, 'regular_price', 'sale_price')
     return incorrect_val_ids
 
-def test_promo_greater_than_sale(df):
-    incorrect_val_ids = test_col_vals_are_greater_than_other(df, 'promo_price', 'sale_price')
+def test_promo_greater_or_equal_to_sale(df):
+    incorrect_val_ids = test_col_vals_are_greater_or_equal_to_other(df, 'promo_price', 'sale_price')
     return incorrect_val_ids
 
 def test_order_total_paid_equal_sum_of_orderlines(df):
