@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 
-path = '../data/'
+default_data_path = '../data/'
 
 # Initial data cleaning functions
 
@@ -57,19 +57,22 @@ def add_missing_product_descriptions(df):
 def drop_duplicate_rows_by_column(df, col):
     return df.drop_duplicates(subset=col)
 
-def import_brands():
+def import_brands(data_path=None):
+    path = data_path if data_path else default_data_path
     return pd.read_csv(path + 'brands.csv',
                       dtype={'short': str,
                              'long': str})
 
-def import_orders():
+def import_orders(data_path=None):
+    path = data_path if data_path else default_data_path
     return pd.read_csv(path + 'orders.csv',
                        dtype={'order_id': int, 
                               'total_paid': float, 
                               'state': str}, 
                        parse_dates=['created_date'])
 
-def import_orderlines():
+def import_orderlines(data_path=None):
+    path = data_path if data_path else default_data_path
     return pd.read_csv(path + 'orderlines.csv', 
                        dtype={'id': int, 
                               'id_order': int, 
@@ -79,7 +82,8 @@ def import_orderlines():
                               'unit_price': str}, 
                        parse_dates=['date'])
 
-def import_products():
+def import_products(data_path=None):
+    path = data_path if data_path else default_data_path
     return pd.read_csv(path + 'products.csv',
                        dtype={'sku': str, 
                               'name': str, 
@@ -89,14 +93,14 @@ def import_products():
                               'in_stock': int,
                               'type': str})
 
-def clean_brands():
+def clean_brands(data_path=None):
     print("0 missing values were removed from brands.")
     print("This represents 0.00% of the data.")
     print("\n")
-    return import_brands()
+    return import_brands(data_path)
 
-def clean_orders():
-    orders = import_orders()
+def clean_orders(data_path=None):
+    orders = import_orders(data_path)
     
     orders_clean = (orders
                     .pipe(start_pipeline)
@@ -109,8 +113,8 @@ def clean_orders():
 
     return orders_clean
 
-def clean_orderlines():
-    orderlines = import_orderlines()
+def clean_orderlines(data_path=None):
+    orderlines = import_orderlines(data_path)
     
     orderlines_clean = (orderlines
                         .pipe(start_pipeline)
@@ -124,8 +128,8 @@ def clean_orderlines():
 
     return orderlines_clean
 
-def clean_products():
-    products = import_products()
+def clean_products(data_path=None):
+    products = import_products(data_path)
 
     # Check for products without descriptions
     names_of_products_without_descriptions = products[products.desc.isna()].name.tolist()
@@ -137,7 +141,7 @@ def clean_products():
                       .pipe(remove_missing_data, col='price')
                       .pipe(drop_duplicate_rows_by_column, 'sku')
                      )
-                      
+    
     print(f"{products.shape[0]-products_clean.shape[0]} missing values were removed from products")
     print(f"This represents {(products.shape[0]-products_clean.shape[0])/products.shape[0] * 100:.2f}% of the data.")
     print("\n")
