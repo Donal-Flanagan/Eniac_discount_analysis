@@ -136,7 +136,7 @@ def clean_products(data_path=None):
 
     products_clean = (products
                       .pipe(start_pipeline)
-                      .pipe(drop_deprecated_columns, col_list=['type', 'in_stock']) 
+                      .pipe(drop_deprecated_columns, col_list=['type', 'in_stock', 'promo_price']) 
                       .pipe(add_missing_product_descriptions)
                       .pipe(remove_missing_data, col='price')
                       .pipe(drop_duplicate_rows_by_column, 'sku')
