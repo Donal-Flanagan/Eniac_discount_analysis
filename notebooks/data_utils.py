@@ -163,7 +163,6 @@ col_order = [
     'total_paid',
     'product_quantity',
     'regular_price',
-    'promo_price',
     'sale_price'
 ]
 
