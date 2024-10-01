@@ -45,6 +45,10 @@ def test_regular_greater_or_equal_to_sale(df):
     incorrect_val_ids = test_col_vals_are_greater_or_equal_to_other(df, 'regular_price', 'sale_price')
     return incorrect_val_ids
 
+def test_total_greater_or_equal_to_sale(df):
+    incorrect_val_ids = test_col_vals_are_greater_or_equal_to_other(df, 'total_paid', 'sale_price')
+    return incorrect_val_ids
+
 def test_order_total_paid_equal_sum_of_orderlines(df):
     # Group by order_id and calculate the sum of sale_price*product_quantity for all orderline_ids
     grouped_orderlines = df.groupby('order_id').apply(
