@@ -37,7 +37,7 @@ def test_col_vals_are_greater_or_equal_to_other(df, greater_col, lesser_col):
         return pd.DataFrame()
     else:
         print(f"There are corrupted values in {greater_col} which are less than their corresponding {lesser_col} values.")
-        print(f"This respresents {num_incorrect_vals/df.shape[0]*100:.2f}% of the data.\n")
+        print(f"This represents {num_incorrect_vals/df.shape[0]*100:.2f}% of the data.\n")
         corrupted_price_orderline_ids = df[df[greater_col] < df[lesser_col]].orderline_id
         return corrupted_price_orderline_ids
     
@@ -67,5 +67,5 @@ def test_order_total_paid_equal_sum_of_orderlines(df):
         return pd.DataFrame()
     else:
         print(f"There are {incorrect_orders.shape[0]} orders where total_paid does not match the sum of product_quantity * sale_price.")
-        print(f"This respresents {incorrect_orders.shape[0]/df.shape[0]*100:.2f}% of the data.\n")
+        print(f"This represents {incorrect_orders.shape[0]/df.shape[0]*100:.2f}% of the data.\n")
         return incorrect_orders
